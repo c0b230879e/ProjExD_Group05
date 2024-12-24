@@ -1,7 +1,9 @@
 import pygame as pg
 import math
 import random  # ランダムモジュールをインポート
-
+pg.mixer.init()
+move_sound = pg.mixer.Sound("ex5/fig/ワープ.mp3")
+boot_sound = pg.mixer.Sound("ex5/fig/起動.mp3")
 class Bird:
     def __init__(self, x, y, img, speed=5):
         self.x = x
@@ -17,10 +19,12 @@ class Bird:
     def update(self, keys):
         if keys[pg.K_0] and self.boost_timer == 0:
             self.boost_timer = 600  # 10秒ブースト
+            boot_sound.play()
+
 
         # ブースト中の処理
         if self.boost_timer > 0:
-            self.speed = self.base_speed * 6  #4倍速
+            self.speed = self.base_speed * 7 #4倍速
             self.boost_timer -= 1
         else:
             self.speed = self.base_speed
@@ -30,15 +34,23 @@ class Bird:
         if keys[pg.K_LEFT] and self.x > 400:  # 左半分に制限（x座標が400より小さくならないように）
             self.x -= self.speed
             self.dire = (-1, 0)  # 左
+            if self.boost_timer > 0:
+                move_sound.play()
         if keys[pg.K_RIGHT]:
             self.x += self.speed
             self.dire = (1, 0)  # 右
+            if self.boost_timer > 0:
+                move_sound.play()
         if keys[pg.K_UP]:
             self.y -= self.speed
             self.dire = (0, -1)  # 上
+            if self.boost_timer > 0:
+                move_sound.play()
         if keys[pg.K_DOWN]:
             self.y += self.speed
             self.dire = (0, 1)  # 下
+            if self.boost_timer > 0:
+                move_sound.play()
         self.rect.topleft = (self.x, self.y)  # rectの位置を更新
         if self.boost_timer > 0:
             self.trail.append((self.x, self.y))
@@ -62,6 +74,10 @@ class Bird:
         else:
             screen.blit(self.img, (self.x, self.y))
 
+    # 音声ファイルの読み込み
+
+
+
     def acceleration_effect(self, screen):
         """加速中は画像を薄い赤色に変更"""
         tinted_img = self.img.copy()
@@ -69,6 +85,7 @@ class Bird:
         red_surface.fill((255, 100, 100, 180))  # 薄い赤
         tinted_img.blit(red_surface, (0, 0), special_flags=pg.BLEND_RGBA_MULT)
         screen.blit(tinted_img, (self.x, self.y))
+        
 
 
 class Bird_2:
@@ -86,6 +103,7 @@ class Bird_2:
     def update(self, keys):
         if keys[pg.K_1] and self.boost_timer == 0:
             self.boost_timer = 600  # 10秒ブースト
+            boot_sound.play()
 
         # ブースト中の処理
         if self.boost_timer > 0:
@@ -99,15 +117,23 @@ class Bird_2:
         if keys[pg.K_a] and self.x > 0:  # 左半分に制限（x座標が0より小さくならないように）
             self.x -= self.speed
             self.dire = (-1, 0)  # 左
+            if self.boost_timer > 0:
+                move_sound.play()
         if keys[pg.K_d] and self.x < 400:  # 右端に制限（400より右には行かない）
             self.x += self.speed
             self.dire = (1, 0)  # 右
+            if self.boost_timer > 0:
+                move_sound.play()
         if keys[pg.K_w]:
             self.y -= self.speed
             self.dire = (0, -1)  # 上
+            if self.boost_timer > 0:
+                move_sound.play()
         if keys[pg.K_s]:
             self.y += self.speed
             self.dire = (0, 1)  # 下
+            if self.boost_timer > 0:
+                move_sound.play()
         self.rect.topleft = (self.x, self.y)  # rectの位置を更新
         # 残像の位置を記録 (ブースト中のみ)
         if self.boost_timer > 0:
