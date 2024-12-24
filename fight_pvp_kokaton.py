@@ -1,9 +1,10 @@
 import pygame as pg
 import math
 import random  # ランダムモジュールをインポート
+pg.mixer.init()
+move_sound = pg.mixer.Sound("ex5/fig/ワープ.mp3")
+boot_sound = pg.mixer.Sound("ex5/fig/起動.mp3")
 import time
-import math
-import random  # ランダムモジュールをインポート
 
 class TheWorld:
     """
@@ -106,31 +107,89 @@ class Bird:
         self.dire = (0, 0)  # 初期方向は(0, 0)
         self.rect = self.img.get_rect(topleft=(x, y))  # 位置を設定
         self.status = status
+        self.base_speed = speed  # デフォルトの速度
+        self.dire = (0, 0)  # 初期方向
+        self.rect = self.img.get_rect(topleft=(x, y))
+        self.trail = []  # 残像の位置リスト
+        self.boost_timer = 0  # 加速タイマー (10秒 = 600フレーム @ 60FPS)
+       
 
 
     def update(self, keys, time_stopped):
         if time_stopped:
             return 
+        if keys[pg.K_0] and self.boost_timer == 0:
+            self.boost_timer = 600  # 10秒ブースト
+            boot_sound.play()
+
+
+        # ブースト中の処理
+        if self.boost_timer > 0:
+            self.speed = self.base_speed * 7 #4倍速
+            self.boost_timer -= 1
+        else:
+            self.speed = self.base_speed
+            self.trail.clear()  # 残像をクリアする
         # キーに基づいて方向を更新
         self.dire = (0, 0)
         if keys[pg.K_LEFT] and self.x > 400:
             self.x -= self.speed
             self.dire = (-1, 0)  # 左
+            if self.boost_timer > 0:
+                move_sound.play()
         if keys[pg.K_RIGHT]:
             self.x += self.speed
             self.dire = (1, 0)  # 右
+            if self.boost_timer > 0:
+                move_sound.play()
         if keys[pg.K_UP]:
             self.y -= self.speed
             self.dire = (0, -1)  # 上
+            if self.boost_timer > 0:
+                move_sound.play()
         if keys[pg.K_DOWN]:
             self.y += self.speed
-            self.dire = (0, 1)
-        self.rect.topleft = (self.x, self.y)
+            self.dire = (0, 1)  # 下
+            if self.boost_timer > 0:
+                move_sound.play()
+        self.rect.topleft = (self.x, self.y)  # rectの位置を更新
+        if self.boost_timer > 0:
+            self.trail.append((self.x, self.y))
+        if len(self.trail) > 10:
+            self.trail.pop(0)
+
+        if keys[pg.K_LEFT] and self.x > 400:  # 左半分に制限（x座標が400より小さくならないように）
+            self.x -= self.speed
     def draw(self, screen):
-        """
-        鳥_1の画像を画面に描画
-        """
-        screen.blit(self.img, (self.x, self.y))
+        for i, (tx, ty) in enumerate(self.trail):
+            trail_img = self.img.copy()
+            # 残像の色を薄い赤に変更
+            red_surface = pg.Surface(self.img.get_size(), flags=pg.SRCALPHA)
+            red_surface.fill((255, 100, 100, 150))  # 薄い赤色（透明度150）
+            trail_img.blit(red_surface, (0, 0), special_flags=pg.BLEND_RGBA_MULT)
+            alpha = max(0, 255 - (i * 25))  # 古い残像ほど透明にする
+            trail_img.set_alpha(alpha)
+            screen.blit(trail_img, (tx, ty))
+
+        # ブースト中は色を変更
+        if self.boost_timer > 0:
+            self.acceleration_effect(screen)
+        else:
+            screen.blit(self.img, (self.x, self.y))
+    
+
+    # 音声ファイルの読み込み
+
+
+
+    def acceleration_effect(self, screen):
+        """加速中は画像を薄い赤色に変更"""
+        tinted_img = self.img.copy()
+        red_surface = pg.Surface(self.img.get_size(), flags=pg.SRCALPHA)
+        red_surface.fill((255, 100, 100, 180))  # 薄い赤
+        tinted_img.blit(red_surface, (0, 0), special_flags=pg.BLEND_RGBA_MULT)
+        screen.blit(tinted_img, (self.x, self.y))
+        
 
 
 class Bird_2:
@@ -148,31 +207,136 @@ class Bird_2:
         self.dire = (0, 0)  # 初期方向は(0, 0)
         self.rect = self.img.get_rect(topleft=(x, y))  # 位置を設定
         self.status = status
+        self.base_speed = speed  # デフォルトの速度
+        self.dire = (0, 0)  # 初期方向
+        self.rect = self.img.get_rect(topleft=(x, y))
+        self.trail = []  # 残像の位置リスト
+        self.boost_timer = 0  # 加速タイマー (10秒 = 600フレーム @ 60FPS)
+
 
     def update(self, keys, time_stopped):
         if time_stopped:
             return
+        if keys[pg.K_1] and self.boost_timer == 0:
+            self.boost_timer = 600  # 10秒ブースト
+            boot_sound.play()
+
+        # ブースト中の処理
+        if self.boost_timer > 0:
+            self.speed = self.base_speed * 4 #4倍速
+            self.boost_timer -= 1
+        else:
+            self.speed = self.base_speed
+            self.trail.clear()  # 残像をクリアする
+        # キーに基づいて方向を更新
+        self.dire = (0, 0)
+        if keys[pg.K_a] and self.x > 0:  # 左半分に制限（x座標が0より小さくならないように）
+            self.x -= self.speed
         # キーに基づいて方向を更新
         self.dire = (0, 0)
         if keys[pg.K_a] and self.x > 0:
             self.x -= self.speed
             self.dire = (-1, 0)  # 左
-        if keys[pg.K_d] and self.x < 400:
+            if self.boost_timer > 0:
+                move_sound.play()
+        if keys[pg.K_d] and self.x < 400:  # 右端に制限（400より右には行かない）
             self.x += self.speed
             self.dire = (1, 0)  # 右
+            if self.boost_timer > 0:
+                move_sound.play()
         if keys[pg.K_w]:
             self.y -= self.speed
             self.dire = (0, -1)  # 上
+            if self.boost_timer > 0:
+                move_sound.play()
         if keys[pg.K_s]:
             self.y += self.speed
             self.dire = (0, 1)  # 下
+            if self.boost_timer > 0:
+                move_sound.play()
         self.rect.topleft = (self.x, self.y)  # rectの位置を更新
+        # 残像の位置を記録 (ブースト中のみ)
+        if self.boost_timer > 0:
+            self.trail.append((self.x, self.y))
+        if len(self.trail) > 10:
+            self.trail.pop(0)
 
     def draw(self, screen):
+        for i, (tx, ty) in enumerate(self.trail):
+            trail_img = self.img.copy()
+            # 残像の色を薄い水色に変更
+            blue_surface = pg.Surface(self.img.get_size(), flags=pg.SRCALPHA)
+            blue_surface.fill((100, 100, 255, 150))  # 薄い水色（透明度150）
+            trail_img.blit(blue_surface, (0, 0), special_flags=pg.BLEND_RGBA_MULT)
+            alpha = max(0, 255 - (i * 25))  # 古い残像ほど透明にする
+            trail_img.set_alpha(alpha)
+            screen.blit(trail_img, (tx, ty))
+
+        # ブースト中は色を変更
+        if self.boost_timer > 0:
+            self.acceleration_effect(screen)
+        else:
+            screen.blit(self.img, (self.x, self.y))
+    
+      
+    def acceleration_effect(self, screen):
+        """加速中は画像を薄い水色に変更"""
+        tinted_img = self.img.copy()
+        blue_surface = pg.Surface(self.img.get_size(), flags=pg.SRCALPHA)
+        blue_surface.fill((100, 100, 255, 180))  # 薄い水色
+        tinted_img.blit(blue_surface, (0, 0), special_flags=pg.BLEND_RGBA_MULT)
+        screen.blit(tinted_img, (self.x, self.y))
+
+
+class Beam(pg.sprite.Sprite):
+    """
+    ビームに関するクラス
+    """
+    def __init__(self, bird, angle=0):
         """
-        鳥の画像を画面に描画
+        ビーム画像Surfaceを生成する
+        引数 bird：ビームを放つ鳥
+        引数 angle: ビームが回転する角度
         """
-        screen.blit(self.img, (self.x, self.y))
+        super().__init__()
+        self.vx, self.vy = bird.dire
+
+        # birdがBirdの場合は左向き、Bird_2の場合は右向きに設定
+        if isinstance(bird, Bird):  # Birdから発射されるビームを左向き
+            initial_angle = 180  # 180度回転させる
+        else:  # Bird_2から発射されるビームを右向き
+            initial_angle = 0  # 0度回転させる
+        
+        self.image = pg.transform.rotozoom(pg.image.load("ex5/fig/beam.png"), initial_angle, 1.0)
+        self.vx = math.cos(math.radians(initial_angle))  # x方向の速度
+        self.vy = -math.sin(math.radians(initial_angle))  # y方向の速度
+        self.rect = self.image.get_rect()
+        self.rect.centery = bird.rect.centery + bird.rect.height * self.vy
+        self.rect.centerx = bird.rect.centerx + bird.rect.width * self.vx
+        self.speed = 10  # ビームの速度
+
+    def update(self):
+        """
+        ビームを速度ベクトルself.vx, self.vyに基づき移動させる
+        また、ビームと鳥が衝突しているか確認する
+        """
+        self.rect.move_ip(self.speed * self.vx, self.speed * self.vy)
+
+        # birdとbird_2の衝突判定
+        if self.rect.colliderect(bird.rect):  # ビームがbirdに当たった場合
+            self.kill()  # ビームを削除
+        if self.rect.colliderect(bird_2.rect):  # ビームがbird_2に当たった場合
+            self.kill()  # ビームを削除
+
+        # ビームが画面外に出たら削除
+        if not (0 <= self.rect.left <= 800 and 0 <= self.rect.top <= 600):
+            self.kill()  # 画面外に出たビームを削除
+
+
+def check_bound(rect):
+    left, top, right, bottom = rect.left, rect.top, rect.right, rect.bottom
+    return 0 <= left <= 800 and 0 <= top <= 600
+
 
 class Beam(pg.sprite.Sprite):
     """
@@ -381,6 +545,7 @@ bird_2_img = pg.image.load("ex5/fig/1.png")
 running = True
 finish = None
 while running:
+    screen.fill((255, 255, 255))  # 画面を白で塗りつぶす
     screen.fill((255, 255, 255))  # 画面を白で塗りつぶす
     
     # 背景を描画
