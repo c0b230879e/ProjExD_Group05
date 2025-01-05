@@ -5,22 +5,25 @@ pg.mixer.init()
 move_sound = pg.mixer.Sound("ex5/fig/ワープ.mp3")
 boot_sound = pg.mixer.Sound("ex5/fig/起動.mp3")
 import time
-
 class TheWorld:
     """
     時を止めるクラス
     """
     def __init__(self):
         self.time_stop_bird = False   # Bird用の時間停止状態
-        self.time_stop_bird2 = False  # Bird_2用の時間停止状態
+        self.time_stop_bird2 = False  # Bird_2用の時間停止状態s
 
     def toggle_bird(self):
         """Birdの時間停止を切り替える"""
         self.time_stop_bird = not self.time_stop_bird
+        if self.time_stop_bird:  # 時間停止をオンにする場合
+            bird_2.status.decrease_mp(50)  # Bird_2のMPを50消費
 
     def toggle_bird2(self):
         """Bird_2の時間停止を切り替える"""
         self.time_stop_bird2 = not self.time_stop_bird2
+        if self.time_stop_bird2:  # 時間停止をオンにする場合
+            bird.status.decrease_mp(50)  # BirdのMPを50消費
 
     def is_time_stopped(self, bird_name):
         """指定された鳥が時間停止状態かを返す"""
@@ -35,44 +38,27 @@ class Status:
     HP（ヒットポイント）とMP（魔法ポイント）を管理するクラス。
     HPやMPの増減、画面上への表示を行う。
     """
-
     def __init__(self, mp=100, hp=100):
         """
         MPとHPを初期化。デフォルト値はどちらも100。
         """
         self.mp = mp  # 魔法ポイント（MP）
         self.hp = hp  # ヒットポイント（HP）
+        self.shield_active = False  # シールドがアクティブかどうか
 
-    def decrease_mp(self,amount = 1 ):
-        """
-        MPを1減少（MPが0より大きい場合のみ）
-        """
-        if self.mp > 0:
-            self.mp -= 1
-            if keys[pg.K_0]:
-                self.mp -=50
+    def decrease_mp(self, amount=1):
+        if self.mp >= amount:
+            self.mp -= amount
+        else:
+            self.mp = 0
 
-
-    def decrease_hp(self, amount=2,):
-        """
-        HPを指定量減少（HPが0より大きい場合のみ）
-        """
-
-
-
-        if self.hp > 0:
+    def decrease_hp(self, amount=2):
+        if self.shield_active:  # シールドがアクティブならHP減少を無効化
+            return
+        if self.hp > amount:
             self.hp -= amount
-
-    # def increace_hp(self, amount=2, ):
-    #     """
-    #     HPを指定量減少（HPが0より大きい場合のみ）
-    #     """
-
-
-
-    #     if self.hp > 0:
-    #         if shields == True:
-    #             self.hp += 1
+        else:
+            self.hp = 0
 
     def draw(self, screen, x_offset, y_offset):
         """
@@ -402,7 +388,6 @@ class Beam(pg.sprite.Sprite):
         # ビームが画面外に出たら削除
         if not (0 <= self.rect.left <= 800 and 0 <= self.rect.top <= 600):
             self.kill()  # 画面外に出たビームを削除
-
 class Shield(pg.sprite.Sprite):
     """
     防御壁に関するクラス
@@ -415,26 +400,26 @@ class Shield(pg.sprite.Sprite):
         """
         super().__init__()
         self.life = life
+        self.bird = bird 
+        bird.status.decrease_mp(20)  # MPを20消費
+        bird.status.shield_active = True  # シールドをアクティブに
 
-        # シールドを画像に変更
-        original_image = pg.image.load("ex5/fig/at.png").convert_alpha()  # 4.pngを読み込む
-        
-        # リサイズ（width_factorとheight_factorで指定された倍率でリサイズ）
+        # Load and resize the shield image
+        original_image = pg.image.load("ex5/fig/at.png").convert_alpha()
         new_width = int(original_image.get_width() * width_factor)
         new_height = int(original_image.get_height() * height_factor)
         self.image = pg.transform.scale(original_image, (new_width, new_height))
         self.rect = self.image.get_rect(center=bird.rect.center)
-        self.initial_position = self.rect.center  # 発動時に位置を固定
-        
 
-    def update(self, bird):
-        self.life -= 1  # 寿命を減らす
+    def update(self):
+        """
+        Update the shield's state and position.
+        """
+        self.life -= 1  
         if self.life <= 0:
-            self.kill()  # 寿命が尽きたら削除
-        
-        # # 位置を固定して動かさない
-        # self.rect.center = self.initial_position  # 固定された位置に維持
-        self.rect.center = bird.rect.center
+            self.bird.status.shield_active = False  
+            self.kill()  
+        self.rect.center = self.bird.rect.center
 
 class Shield2(pg.sprite.Sprite):
     """
@@ -448,26 +433,30 @@ class Shield2(pg.sprite.Sprite):
         """
         super().__init__()
         self.life = life
+        self.bird = bird 
+        bird.status.decrease_mp(20)  # MPを20消費
+        bird.status.shield_active = True  # シールドをアクティブに
 
-        # シールドの画像を4.pngに変更
-        original_image = pg.image.load("ex5/fig/at.png").convert_alpha() 
+        # シールドの画像を読み込む
+        original_image = pg.image.load("ex5/fig/at.png").convert_alpha()
         # リサイズ（width_factorとheight_factorで指定された倍率でリサイズ）
         new_width = int(original_image.get_width() * width_factor)
         new_height = int(original_image.get_height() * height_factor)
-        self.image = pg.transform.scale(original_image, (new_width, new_height))  # リサイズされた画像  # 4.pngを読み込む
+        self.image = pg.transform.scale(original_image, (new_width, new_height))
         self.rect = self.image.get_rect(center=bird.rect.center)
         self.initial_position = self.rect.center  # 発動時に位置を固定
-        
 
-    def update(self, bird):
+    def update(self):
+        """
+        シールドの状態を更新する
+        """
         self.life -= 1  # 寿命を減らす
         if self.life <= 0:
+            self.bird.status.shield_active = False  # シールドを無効化
             self.kill()  # 寿命が尽きたら削除
-        # # 位置を固定して動かさない
-        # self.rect.center = self.initial_position  # 固定された位置に維持
         
-        self.rect.center = bird_2.rect.center
-
+        # シールドの位置を鳥に追従させる
+        self.rect.center = self.bird.rect.center
 
 
 class Beam(pg.sprite.Sprite):
@@ -534,6 +523,8 @@ class HomingBeam(pg.sprite.Sprite):
         self.speed = 5  # 追尾弾の速度
         self.target = target  # 追尾対象
         self.spawn_time = time.time()  # 発射時の時間を記録
+        bird.status.decrease_mp(10)  # MPを10消費
+
 
 
         # 初期速度ベクトルを設定
@@ -620,10 +611,6 @@ shield_active_bird_2 = False
 if shield_active_bird == True:
     Status.bird.decrease_hp(-50)  # hpを30消費
     
-
-
-    #.status.decrease_hp(0)  # hpを30消費
-
 if shield_active_bird_2 == True:
     Status.bird.decrease_hp(-50)  # hpを30消費
     
@@ -646,6 +633,7 @@ bird_2_img = pg.image.load("ex5/fig/1.png")
 
 running = True
 finish = None
+
 while running:
     screen.fill((255, 255, 255))  # 画面を白で塗りつぶす
     
@@ -661,10 +649,10 @@ while running:
         if event.type == pg.QUIT:
             running = False
         if event.type == pg.KEYDOWN:
-            if event.key == pg.K_TAB:  # Birdの時停止切り替え
+            if event.key == pg.K_TAB and bird.status.mp >= 50:  # 必要MPが50
                 the_world.toggle_bird()
                 bird.status.decrease_mp(100)  # MPを50消費
-            if event.key == pg.K_p:  # Bird_2の時停止切り替え
+            if event.key == pg.K_p and bird_2.status.mp >= 50:  # 必要MPが50
                 the_world.toggle_bird2()
                 bird_2.status.decrease_mp(100)  # MPを50消費
 
@@ -674,14 +662,15 @@ while running:
     if finish is None:
         bird.update(keys, the_world.is_time_stopped("bird"))
         bird_2.update(keys, the_world.is_time_stopped("bird_2"))
-        print(f"MP: Bird = {bird.status.mp}, Bird_2 = {bird_2.status.mp}")  # デバッグ用
+       # print(f"MP: Bird = {bird.status.mp}, Bird_2 = {bird_2.status.mp}  ")  # デバッグ用
+        print(f"HP: Bird = {bird.status.hp}, Bird_2 = {bird_2.status.hp}  ")  # デバッグ用
         # ビーム発射（右シフトはbird、左シフトはbird_2）
-        if keys[pg.K_RSHIFT] and bird.status.mp > 0:
+        if keys[pg.K_RSHIFT] and bird.status.mp > 1:
             beam = Beam(bird)
             beams.add(beam)
             bird.status.decrease_mp()
 
-        if keys[pg.K_LSHIFT] and bird_2.status.mp > 0:
+        if keys[pg.K_LSHIFT] and bird_2.status.mp > 1:
             beam_2 = Beam(bird_2)
             beams.add(beam_2)
             bird_2.status.decrease_mp()
@@ -706,12 +695,12 @@ while running:
             beams.draw(screen)
         #################
         # 追尾弾発射（新しいキー設定）
-        if keys[pg.K_o]:  # Bird（右側の鳥）から追尾弾を発射（Eキー）
+        if keys[pg.K_o]and bird.status.mp >= 10:  # 必要MPが10
             homing_beam = HomingBeam(bird, bird_2)  # Bird_2をターゲットにする
             beams.add(homing_beam)
             bird.status.decrease_mp(5)  # MPを5消費
 
-        if keys[pg.K_q]:  # Bird_2（左側の鳥）から追尾弾を発射（Qキー）
+        if keys[pg.K_q]and bird_2.status.mp >= 10:  # 必要MPが10）
             homing_beam_2 = HomingBeam(bird_2, bird)  # Birdをターゲットにする
             beams.add(homing_beam_2)
             bird_2.status.decrease_mp(5)
@@ -750,9 +739,9 @@ while running:
         shield_active_bird_2 = False
 
     # シールドの更新
-    shields.update(bird)
+    shields.update()
     shields.draw(screen)
-    shields2.update(bird_2)
+    shields2.update()
     shields2.draw(screen)
 
     if finish is None:
