@@ -1,9 +1,11 @@
 import pygame as pg
 import math
 import random  # ランダムモジュールをインポート
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 pg.mixer.init()
-move_sound = pg.mixer.Sound("ex5/fig/ワープ.mp3")
-boot_sound = pg.mixer.Sound("ex5/fig/起動.mp3")
+move_sound = pg.mixer.Sound("fig/ワープ.mp3")
+boot_sound = pg.mixer.Sound("fig/起動.mp3")
 import time
 class TheWorld:
     """
@@ -316,7 +318,7 @@ class Beam(pg.sprite.Sprite):
         else:  # Bird_2から発射されるビームを右向き
             initial_angle = 0  # 0度回転させる
         
-        self.image = pg.transform.rotozoom(pg.image.load("ex5/fig/beam.png"), initial_angle, 1.0)
+        self.image = pg.transform.rotozoom(pg.image.load("fig/beam.png"), initial_angle, 1.0)
         self.vx = math.cos(math.radians(initial_angle))  # x方向の速度
         self.vy = -math.sin(math.radians(initial_angle))  # y方向の速度
         self.rect = self.image.get_rect()
@@ -367,7 +369,7 @@ class Beam(pg.sprite.Sprite):
         else:  # Bird_2から発射されるビームを右向き
             initial_angle = 0  # 0度回転させる
         
-        self.image = pg.transform.rotozoom(pg.image.load("ex5/fig/beam.png"), initial_angle, 1.0)
+        self.image = pg.transform.rotozoom(pg.image.load("fig/beam.png"), initial_angle, 1.0)
         self.vx = math.cos(math.radians(initial_angle))  # x方向の速度
         self.vy = -math.sin(math.radians(initial_angle))  # y方向の速度
         self.rect = self.image.get_rect()
@@ -408,7 +410,7 @@ class Shield(pg.sprite.Sprite):
         bird.status.shield_active = True  # シールドをアクティブに
 
         # Load and resize the shield image
-        original_image = pg.image.load("ex5/fig/at.png").convert_alpha()
+        original_image = pg.image.load("fig/at.png").convert_alpha()
         new_width = int(original_image.get_width() * width_factor)
         new_height = int(original_image.get_height() * height_factor)
         self.image = pg.transform.scale(original_image, (new_width, new_height))
@@ -441,7 +443,7 @@ class Shield2(pg.sprite.Sprite):
         bird.status.shield_active = True  # シールドをアクティブに
 
         # シールドの画像を読み込む
-        original_image = pg.image.load("ex5/fig/at.png").convert_alpha()
+        original_image = pg.image.load("fig/at.png").convert_alpha()
         # リサイズ（width_factorとheight_factorで指定された倍率でリサイズ）
         new_width = int(original_image.get_width() * width_factor)
         new_height = int(original_image.get_height() * height_factor)
@@ -481,7 +483,7 @@ class Beam(pg.sprite.Sprite):
         else:  # Bird_2から発射されるビームを右向き
             initial_angle = 0  # 0度回転させる
         
-        self.image = pg.transform.rotozoom(pg.image.load("ex5/fig/beam.png"), initial_angle, 1.0)
+        self.image = pg.transform.rotozoom(pg.image.load("fig/beam.png"), initial_angle, 1.0)
         self.vx = math.cos(math.radians(initial_angle))  # x方向の速度
         self.vy = -math.sin(math.radians(initial_angle))  # y方向の速度
         self.rect = self.image.get_rect()
@@ -519,7 +521,7 @@ class HomingBeam(pg.sprite.Sprite):
         引数 target: 追尾するターゲット（敵の鳥）
         """
         super().__init__()
-        self.image = pg.image.load("ex5/fig/beam.png")
+        self.image = pg.image.load("fig/beam.png")
         self.image = pg.transform.scale(self.image, (15, 15))  # 追尾弾のサイズを小さくする
         self.rect = self.image.get_rect(center=bird.rect.center)
 
@@ -589,13 +591,13 @@ screen = pg.display.set_mode((800, 600))
 clock = pg.time.Clock()
 
 # 背景と鳥の画像を読み込む
-background = pg.image.load("ex5/fig/pg_bg.jpg")
-bird_img = pg.image.load("ex5/fig/0.png")
-bird_2_img = pg.image.load("ex5/fig/1.png")
+background = pg.image.load("fig/pg_bg.jpg")
+bird_img = pg.image.load("fig/0.png")
+bird_2_img = pg.image.load("fig/1.png")
 # 背景と鳥の画像を読み込む
-background = pg.image.load("ex5/fig/pg_bg.jpg")
-bird_img = pg.image.load("ex5/fig/0.png")
-bird_2_img = pg.image.load("ex5/fig/1.png")
+background = pg.image.load("fig/pg_bg.jpg")
+bird_img = pg.image.load("fig/0.png")
+bird_2_img = pg.image.load("fig/1.png")
 
 
 
@@ -630,9 +632,9 @@ the_world = TheWorld()
 
 pause_overlay = pg.Surface((800, 600), pg.SRCALPHA)
 pause_overlay.fill((0, 0, 0, 153))  # 透明度60%の黒背景
-background = pg.image.load("ex5/fig/pg_bg.jpg")
-bird_img = pg.image.load("ex5/fig/0.png")
-bird_2_img = pg.image.load("ex5/fig/1.png")
+background = pg.image.load("fig/pg_bg.jpg")
+bird_img = pg.image.load("fig/0.png")
+bird_2_img = pg.image.load("fig/1.png")
 
 running = True
 finish = None
@@ -666,7 +668,7 @@ while running:
     if finish is None:
         bird.update(keys, the_world.is_time_stopped("bird"))
         bird_2.update(keys, the_world.is_time_stopped("bird_2"))
-       # print(f"MP: Bird = {bird.status.mp}, Bird_2 = {bird_2.status.mp}  ")  # デバッグ用
+        print(f"MP: Bird = {bird.status.mp}, Bird_2 = {bird_2.status.mp}  ")  # デバッグ用
         print(f"HP: Bird = {bird.status.hp}, Bird_2 = {bird_2.status.hp}  ")  # デバッグ用
         # ビーム発射（右シフトはbird、左シフトはbird_2）
         if keys[pg.K_RSHIFT] and bird.status.mp > 1:
@@ -718,7 +720,7 @@ while running:
         pg.mixer.init()
 
     # シールド展開時の音を読み込む
-    shield_sound = pg.mixer.Sound("ex5/fig/at.wav")  # 音声ファイルのパスを指定
+    shield_sound = pg.mixer.Sound("fig/at.wav")  # 音声ファイルのパスを指定
 
     # シールド発生（右Ctrlはbird、左Ctrlはbird_2）
     if keys[pg.K_RCTRL] and not shield_active_bird:  # bird用シールド
