@@ -65,8 +65,8 @@ class Status:
         MPとHPの値を画面に描画
         """
         font = pg.font.Font(None, 36)
-        mp_text = font.render(f'MP: {self.mp}', True, (0, 0, 0))
-        hp_text = font.render(f'HP: {self.hp}', True, (0, 0, 0))
+        mp_text = font.render(f'MP: {int(self.mp)}', True, (0, 0, 0))
+        hp_text = font.render(f'HP: {int(self.hp)}', True, (0, 0, 0))
         screen.blit(mp_text, (x_offset, y_offset))
         screen.blit(hp_text, (x_offset, y_offset - 30))
 
@@ -86,7 +86,7 @@ class Finish:
         勝者の名前と画像を画面に描画
         """
         font = pg.font.Font(None, 80)
-        message = font.render(f"{self.winner_name} WINN!!", True, (255, 0, 0))
+        message = font.render(f"{self.winner_name} WIN!!", True, (255, 0, 0))
         message_rect = message.get_rect(center=(400, 300))
         screen.blit(message, message_rect)
 
@@ -636,7 +636,6 @@ bird_2_img = pg.image.load("ex5/fig/1.png")
 
 running = True
 finish = None
-
 while running:
     screen.fill((255, 255, 255))  # 画面を白で塗りつぶす
     
