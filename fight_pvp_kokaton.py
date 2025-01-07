@@ -13,17 +13,17 @@ class TheWorld:
         self.time_stop_bird = False   # Bird用の時間停止状態
         self.time_stop_bird2 = False  # Bird_2用の時間停止状態s
 
-    def toggle_bird(self):
+    def toggle_bird2(self):
         """Birdの時間停止を切り替える"""
         self.time_stop_bird = not self.time_stop_bird
         if self.time_stop_bird:  # 時間停止をオンにする場合
-            bird_2.status.decrease_mp(50)  # Bird_2のMPを50消費
+            bird.status.decrease_mp(50)  # Bird_2のMPを50消費
 
-    def toggle_bird2(self):
+    def toggle_bird(self):
         """Bird_2の時間停止を切り替える"""
         self.time_stop_bird2 = not self.time_stop_bird2
         if self.time_stop_bird2:  # 時間停止をオンにする場合
-            bird.status.decrease_mp(50)  # BirdのMPを50消費
+            bird_2.status.decrease_mp(50)  # BirdのMPを50消費
 
     def is_time_stopped(self, bird_name):
         """指定された鳥が時間停止状態かを返す"""
@@ -277,6 +277,9 @@ class Bird_2:
             alpha = max(0, 255 - (i * 25))  # 古い残像ほど透明にする
             trail_img.set_alpha(alpha)
             screen.blit(trail_img, (tx, ty))
+
+
+
 
         # ブースト中は色を変更
         if self.boost_timer > 0:
@@ -649,12 +652,14 @@ while running:
         if event.type == pg.QUIT:
             running = False
         if event.type == pg.KEYDOWN:
-            if event.key == pg.K_TAB and bird.status.mp >= 50:  # 必要MPが50
+            if event.key == pg.K_p and bird.status.mp >= 50:  # 必要MPが50
                 the_world.toggle_bird()
                 bird.status.decrease_mp(100)  # MPを50消費
-            if event.key == pg.K_p and bird_2.status.mp >= 50:  # 必要MPが50
+            if event.key == pg.K_TAB and bird_2.status.mp >= 50:  # 必要MPが50
                 the_world.toggle_bird2()
                 bird_2.status.decrease_mp(100)  # MPを50消費
+
+            
 
     keys = pg.key.get_pressed()
 
